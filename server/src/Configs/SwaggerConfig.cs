@@ -57,7 +57,7 @@ namespace server.src.Configs
                                 Id = "Bearer" // Referência ao nome do esquema de segurança
                             },
                             Scheme = "oauth2",
-                            Name = "Bearer",
+                            Name = "BEarer",
                             In = ParameterLocation.Header
                         },
                         new List<string>()

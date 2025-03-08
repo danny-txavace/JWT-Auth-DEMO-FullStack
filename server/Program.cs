@@ -10,14 +10,13 @@ using server.src.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi();
-builder.Services.AddControllers();
-
 builder.Services.AddDbContext<ServerDbContext>(options => options.UseSqlite("Data Source=dbjwtauth.db"));
 builder.Services.AddIdentity<UserModel, IdentityRole>()
     .AddEntityFrameworkStores<ServerDbContext>()
     .AddDefaultTokenProviders(); // Permite gerar tokens de redefinição de senha, autenticação de dois fatores, etc
 
+builder.Services.AddOpenApi();
+builder.Services.AddControllers();
 builder.Services.AddSwaggerConfiguration();
 builder.Services.AddJWTAuthentication(builder.Configuration);
 builder.Services.AddAuthorization();
