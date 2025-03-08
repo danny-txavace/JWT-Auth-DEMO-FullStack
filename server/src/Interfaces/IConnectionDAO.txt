@@ -1,0 +1,32 @@
+/*
+*@author Ramadan Ismael
+*/
+
+using MySqlConnector;
+
+namespace server.src.Interfaces
+{
+    public interface IConnectionDAO
+    {
+        /// <summary>
+        /// Executa uma consulta no banco de dados e retorna um DataReader
+        /// </summary>
+        Task<MySqlDataReader> ExecuteQuery(string query, params MySqlParameter[] parameters);
+
+        /// <summary>
+        /// Executa uma consulta que não retorna dados (INSERT, UPDATE, DELETE)
+        /// </summary>
+        Task<int> ExecuteNonQuery(string query, params MySqlParameter[] parameters);
+
+        /// <summary>
+        /// Executa uma consulta que retorna um único valor (SELECT COUNT(*), SELECT MAX(), etc)
+        /// </summary>
+        Task<object> ExecuteScalar(string query, params MySqlParameter[] parameters);
+
+        /// <summary>
+        /// Executa uma série de consultas dentro de uma transação. Se algum comando falhar, a transação será revertida (rollback)
+        /// Use quando você precisar garantir que múltiplos comandos sejam executados como uma unidade atômica. Ou seja, todos os comandos devem ser bem-sucedidos ou nenhum deles será executado. Ideal para operações que envolvem múltiplas modificações no banco de dados, como transferências bancárias ou criação de registros relacionados.
+        /// </summary>
+        Task ExecuteTransaction(params (string query, MySqlParameter[] parameters)[] commands);
+    }
+}

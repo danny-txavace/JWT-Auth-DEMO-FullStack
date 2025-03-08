@@ -1,0 +1,131 @@
+/*
+* @author Ramadan Ismael
+*/
+
+/*
+
+NUGET := MySqlConnector
+
+*/
+
+using MySqlConnector;
+using server.src.Interfaces;
+
+namespace server.src.Data
+{
+    public sealed class ConnectionDAO : IDisposable, IConnectionDAO
+    {
+        private readonly string _connection;
+        private readonly ILogger<ConnectionDAO> _logger;
+
+        /// <summary>
+        /// Construtor que usa variáveis de ambiente para criar a string de conexão com o banco de dados
+        /// </summary>
+        public ConnectionDAO(ILogger<ConnectionDAO> logger)
+        {
+            var server = Environment.GetEnvironmentVariable("DB_SERVER") ?? throw new InvalidOperationException("db_server is not set");
+            var port = Environment.GetEnvironmentVariable("DB_PORT") ?? throw new InvalidOperationException("db_port is not set");
+            var database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? throw new InvalidOperationException("db_database is not set");
+            var username = Environment.GetEnvironmentVariable("DB_USERNAME") ?? throw new InvalidOperationException("db_username is not set");
+            var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? throw new InvalidOperationException("db_password is not set");
+
+            _connection = $"Server={server};Port={port};Database={database};User Id={username};Password={password};Persist Security Info=False;Pooling=true;Min Pool Size=0;Max Pool Size=100;Connection Lifetime=0;Command Timeout=200;";
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }        
+
+        /// <summary>
+        /// Libera recursos (implementação do IDisposable)
+        /// </summary>
+        public void Dispose()
+        {
+            _logger.LogInformation("ConnectionDAO disposed");
+        }
+
+        public async Task<int> ExecuteNonQuery(string query, params MySqlParameter[] parameters)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(_connection);
+                await connection.OpenAsync();
+
+                using var command = new MySqlCommand(query, connection);
+                command.Parameters.AddRange(parameters);
+
+                return await command.ExecuteNonQueryAsync();
+            }
+            catch(MySqlException ex)
+            {
+                _logger.LogError(ex, "Error executing query: {Query}", query);
+                throw;
+            }
+        }
+
+        public async Task<MySqlDataReader> ExecuteQuery(string query, params MySqlParameter[] parameters)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(_connection);
+                await connection.OpenAsync();
+
+                using var command = new MySqlCommand(query, connection);
+                command.Parameters.AddRange(parameters);
+
+                var reader = await command.ExecuteReaderAsync();
+                return reader;
+            }
+            catch(MySqlException ex)
+            {
+                _logger.LogError(ex, "Error executing query: {Query}", query);
+                throw;
+            }
+        }
+
+        public async Task<object> ExecuteScalar(string query, params MySqlParameter[] parameters)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(_connection);
+                await connection.OpenAsync();
+
+                using var command = new MySqlCommand(query, connection);
+                command.Parameters.AddRange(parameters);
+
+                // Se o valor retornado for null, ele é substituído por DBNull.Value, que representa valores nulos no banco de dados. Isso evita problemas ao manipular valores nulos entre o banco de dados e o código C#.
+                return await command.ExecuteScalarAsync() ?? DBNull.Value;
+            }
+            catch(MySqlException ex)
+            {
+                _logger.LogError(ex, "Error executing query: {Query}", query);
+                throw;
+            }
+        }
+
+        public async Task ExecuteTransaction(params (string query, MySqlParameter[] parameters)[] commands)
+        {
+            using var connection = new MySqlConnection(_connection);
+            await connection.OpenAsync();
+            using var transaction = await connection.BeginTransactionAsync();
+            try
+            {
+                foreach (var (query, parameters) in commands)
+                {
+                    using var command = new MySqlCommand(query, connection, transaction);
+                    if(parameters != null && parameters.Length > 0)
+                    {
+                        command.Parameters.AddRange(parameters);
+                    }
+
+                    await command.ExecuteNonQueryAsync();
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error executing transaction.");
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+    }
+}

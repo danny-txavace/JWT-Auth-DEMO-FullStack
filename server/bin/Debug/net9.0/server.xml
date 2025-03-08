@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>server</name>
+    </assembly>
+    <members>
+        <member name="T:server.Migrations.CreatetbUserMigrations">
+            <inheritdoc />
+        </member>
+        <member name="M:server.Migrations.CreatetbUserMigrations.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:server.Migrations.CreatetbUserMigrations.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:server.Migrations.CreatetbUserMigrations.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:server.src.Configs.SwaggerConfig.UseSwaggerConfiguration(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            DisplayRequestDuration() -> Mostra o tempo de resposta de cada requisição na UI do Swagger
+            EnableFilter() -> Habilita a caixa de pesquisa na UI do Swagger
+            EnableDeepLinking() -> Habilita a navegação profunda na UI do Swagger e Permite o uso de links diretos (URLs) prar endpoints específicos no Swagger UI. Ao recarregar a página, mantém o endpoint aberto
+            EnableValidator() -> Ativa a validação JSON Schema dos parâmentos e repostas no Swagger UI. Ajuda a identificar erros na estrutura dos requests/responses.
+            DisplayOperationId() -> Mostra o ID da operação na UI do Swagger
+            DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None) -> Define o modo de expansão da documentação na UI do Swagger. i.e, Define que as seções dos endpoints ficarão colapsadas por padrão
+            </summary>
+        </member>
+    </members>
+</doc>
