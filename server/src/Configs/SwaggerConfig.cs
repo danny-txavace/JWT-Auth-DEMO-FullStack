@@ -35,13 +35,17 @@ namespace server.src.Configs
                 });
             }
 
+            // um token tem tres partes separadas: header.payload.signature
             static void ConfigureJWTAuthentication(SwaggerGenOptions ram)
             {
                 var securitySchema = new OpenApiSecurityScheme
                 {
                     Description = @"Enter JWT Bearer {token} to access this API",
                     Name = "Authorization", //Nome do cabeçalho que vai armazenar o token
-                    Type = SecuritySchemeType.Http, // Tipo de esquema de segurança
+                    Type = SecuritySchemeType.ApiKey, // Tipo de esquema de segurança (Com ApiKey, o token é enviado no cabeçalho, e primeiro de digitar para validar "
+                    // Bearer {token}
+                    // e Para Http, não precisar digitar Bearer, pois é gerado automáticamente
+                    // ")
                     In = ParameterLocation.Header, // A localização do token (no cabeçalho)                    
                     Scheme = "Bearer", // Esquema do token
                     BearerFormat = "JWT" // Formato do token

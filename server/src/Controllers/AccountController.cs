@@ -8,12 +8,14 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using server.src.DTOs;
 using server.src.Models;
 
 namespace server.src.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
@@ -29,6 +31,7 @@ namespace server.src.Controllers
             _configuration = configuration;
         }   
 
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<ActionResult<string>> Register(RegisterDto registerDto)
         {
@@ -70,6 +73,7 @@ namespace server.src.Controllers
             });
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
         {
@@ -157,7 +161,6 @@ namespace server.src.Controllers
         }
 
 
-        [Authorize]
         [HttpGet("detail")]     
         public async Task<ActionResult<UserDetailDto>> GetUserDetail()
         {
@@ -194,6 +197,20 @@ namespace server.src.Controllers
                 TwoFactorEnabled = user.TwoFactorEnabled,                
                 AccessFailedCount = user.AccessFailedCount            
             });
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<UserDetailDto>>> GetAllUsers()
+        {
+            var users = await _userManager.Users.Select(u => new UserDetailDto
+            {
+                Id = u.Id,
+                Email = u.Email,
+                FullName = u.FullName,
+                Roles = _userManager.GetRolesAsync(u).Result.ToArray()
+            }).ToListAsync();
+
+            return Ok(users);
         }
     }
 }
