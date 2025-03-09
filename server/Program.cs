@@ -17,6 +17,7 @@ builder.Services.AddIdentity<UserModel, IdentityRole>()
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerConfiguration();
 builder.Services.AddJWTAuthentication(builder.Configuration);
 builder.Services.AddAuthorization();

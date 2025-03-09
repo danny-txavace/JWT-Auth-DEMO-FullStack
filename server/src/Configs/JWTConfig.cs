@@ -26,7 +26,7 @@ namespace server.src.Configs
             })
             .AddJwtBearer(ram =>
             {
-                ram.RequireHttpsMetadata = false; // Apenas para desenvolvimento e value TRUE para produção
+                ram.RequireHttpsMetadata = true; // Apenas para desenvolvimento e value TRUE para produção
                 ram.SaveToken = true;
                 ram.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -43,7 +43,7 @@ namespace server.src.Configs
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
                     RequireSignedTokens = true,
-                    ClockSkew = TimeSpan.FromMilliseconds(900)
+                    ClockSkew = TimeSpan.FromMinutes(5)
                 };
             });
         }

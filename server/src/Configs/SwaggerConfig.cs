@@ -2,6 +2,7 @@
 * @author Ramadan Ismael
 */
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -40,7 +41,7 @@ namespace server.src.Configs
                 {
                     Description = @"Enter JWT Bearer {token} to access this API",
                     Name = "Authorization", //Nome do cabeçalho que vai armazenar o token
-                    Type = SecuritySchemeType.ApiKey,
+                    Type = SecuritySchemeType.Http, // Tipo de esquema de segurança
                     In = ParameterLocation.Header, // A localização do token (no cabeçalho)                    
                     Scheme = "Bearer", // Esquema do token
                     BearerFormat = "JWT" // Formato do token
@@ -54,10 +55,10 @@ namespace server.src.Configs
                             Reference = new OpenApiReference
                             {
                                 Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer" // Referência ao nome do esquema de segurança
+                                Id = JwtBearerDefaults.AuthenticationScheme // Referência ao nome do esquema de segurança
                             },
                             Scheme = "oauth2",
-                            Name = "BEarer",
+                            Name = "Bearer",
                             In = ParameterLocation.Header
                         },
                         new List<string>()
@@ -65,7 +66,7 @@ namespace server.src.Configs
                 };
 
                 // Definindo o esquema de segurança no Swagger
-                ram.AddSecurityDefinition("Bearer", securitySchema);
+                ram.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securitySchema);
 
                 // Adicionando o requisito de segurança para a API
                 ram.AddSecurityRequirement(securityRequirement);

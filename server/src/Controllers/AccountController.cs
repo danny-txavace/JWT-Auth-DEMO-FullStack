@@ -100,7 +100,7 @@ namespace server.src.Controllers
                 });
             }
 
-            var token = GenerateToken(user);
+            var token = await GenerateToken(user);
 
             return Ok(new AuthResponseDto
             {
@@ -110,44 +110,69 @@ namespace server.src.Controllers
             });
         }
 
-        private string GenerateToken(UserModel userModel)
+        private async Task<string> GenerateToken(UserModel userModel)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_SIGNING_KEY") ?? throw new InvalidOperationException("JWT_SINGNING_KEY is not set"));
 
-            var roles = _userManager.GetRolesAsync(userModel).Result;
+            string audience = _configuration["JWTSettings:validAudience"] ?? throw new InvalidOperationException("JWT: validAudience is not set");
+            string issuer = _configuration["JWTSettings:validIssuer"] ?? throw new InvalidOperationException("JWT: validIssuer is not set");
+            var signingKey = Environment.GetEnvironmentVariable("JWT_SIGNING_KEY") ?? throw new InvalidOperationException("JWT_SINGNING_KEY is not set");
 
-            List<Claim> claims =
-            [
-                new (JwtRegisteredClaimNames.Email, userModel.Email ?? ""),
-                new (JwtRegisteredClaimNames.Name, userModel.FullName ?? ""),
-                new (JwtRegisteredClaimNames.NameId, userModel.Id ?? ""),
-                new (JwtRegisteredClaimNames.Aud, _configuration.GetSection("JWTSettings").GetSection("validAudience").Value!),
-                new (JwtRegisteredClaimNames.Iss, _configuration.GetSection("JWTSettings").GetSection("validIssuer").Value!)
-            ];
+            var key = Encoding.UTF8.GetBytes(signingKey);
+            var signing = new SymmetricSecurityKey(key);
 
-            foreach(var role in roles)
+            var credentials = new SigningCredentials(signing, SecurityAlgorithms.HmacSha256);
+
+            //Console.WriteLine($"Audience: {audience} \n Issuer: {issuer} \n Signing Key: {signingKey}");
+
+            // Obtém as roles do usuário de forma assíncrona
+            var roles = await _userManager.GetRolesAsync(userModel);
+
+            // Lista de claims do token
+            var claims = new List<Claim>
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
+                new Claim(JwtRegisteredClaimNames.Sub, userModel.Id), // ID do usuário
+                new Claim(JwtRegisteredClaimNames.Email, userModel.Email!),                
+                new Claim(JwtRegisteredClaimNames.Name, userModel.FullName!),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // ID único do token
+                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64) // Data de criação do token
+            };
+
+            // Adiciona todas as roles como claims
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var tokenDescriptor = new SecurityTokenDescriptor
-            {
+            {                
                 Subject = new ClaimsIdentity(claims),
+                NotBefore = DateTime.UtcNow,
                 Expires = DateTime.UtcNow.AddHours(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = credentials,
+                Issuer = issuer,
+                Audience = audience
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
-        }   
+        }
+
 
         [Authorize]
         [HttpGet("detail")]     
         public async Task<ActionResult<UserDetailDto>> GetUserDetail()
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Console.WriteLine($"Current User Id: {currentUserId}");
+            
+            if (currentUserId == null)
+            {
+                return Unauthorized(new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "User is not authenticated."
+                });
+            }
+
             var user = await _userManager.FindByIdAsync(currentUserId!);
 
             if(user is null)
