@@ -8,6 +8,10 @@ import { RoleService } from '../../_services/role.service';
 import { Observable } from 'rxjs';
 import { RolesResponse } from '../../interfaces/roles-response';
 import { AsyncPipe, CommonModule } from '@angular/common';
+import { AuthService } from '../../_services/auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ValidationErrors } from '../../interfaces/validation-errors';
 
 @Component({
   selector: 'app-register',
@@ -26,6 +30,11 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 export class RegisterComponent implements OnInit {
   roleService = inject(RoleService);
   roles! : Observable<RolesResponse[]>;
+
+  // Para Register
+  authService = inject(AuthService);
+  matSnackBar = inject(MatSnackBar);
+  errors! : ValidationErrors[];
 
   hide : boolean = true;
   hideConfirm : boolean = true;
@@ -62,5 +71,40 @@ export class RegisterComponent implements OnInit {
   }
 
   register()
-  {}
+  {
+    const formData = this.registerForm.value;
+
+    // Remove 'confirmPassword' se for igual a 'password'
+    if(formData.password === formData.confirmPassword)
+    {
+      delete formData.confirmPassword;
+    }
+    //console.log(formData)
+
+    this.authService.register(formData).subscribe({
+      next : (response) => {
+        this.matSnackBar.open(response.message, 'Close', {
+          duration: 5000,
+          verticalPosition: 'top',
+          horizontalPosition: 'right'
+        });
+        //console.log(response);
+        this.router.navigate(['/login']);
+      },
+      error : (error : HttpErrorResponse) =>
+      {
+        if(error!.status === 400)
+        {
+          this.errors = error!.error;
+          this.matSnackBar.open('Validations error', 'Close', {
+            duration: 5000,
+            verticalPosition: 'top',
+            horizontalPosition: 'right'
+          });
+        }
+      },
+      complete : () => console.log('Register success!')
+    });
+
+  }
 }
