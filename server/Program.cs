@@ -22,6 +22,14 @@ builder.Services.AddSwaggerConfiguration();
 builder.Services.AddJWTAuthentication(builder.Configuration);
 builder.Services.AddAuthorization();
 
+builder.Services.AddCors(options => {
+    options.AddPolicy("MyClient", ram => {
+        ram.AllowAnyOrigin()
+        .WithMethods("POST", "GET", "PUT", "DELETE")
+        .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -30,6 +38,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("MyClient");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
