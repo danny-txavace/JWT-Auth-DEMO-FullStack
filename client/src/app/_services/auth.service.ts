@@ -4,6 +4,7 @@ import { LoginRequest } from '../interfaces/login-request';
 import { map, Observable } from 'rxjs';
 import { AuthResponse } from '../interfaces/auth-response';
 import { HttpClient } from '@angular/common/http';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root'
@@ -29,5 +30,49 @@ export class AuthService {
         return response;
       })
     );
+  }
+
+  private getToken = () : string | null => localStorage.getItem(this.tokenKey) || '';
+
+  isLoggedIn = () : boolean =>
+  {
+    const token = this.getToken();
+    if(!token) return false;
+
+    return !this.isTokenExpired();
+  }
+
+  private isTokenExpired()
+  {
+    const token = this.getToken();
+    if(!token) return true;
+
+    // npm install jwt-decode
+    // Após instalar, confirme a versão no package.json
+    const decoded = jwtDecode(token);
+    const isTokenExpired = Date.now() >= decoded['exp']! * 1000;
+    if(isTokenExpired) this.logout();
+    return isTokenExpired;
+  }
+
+  logout = () : void =>
+  {
+    localStorage.removeItem(this.tokenKey);
+  }
+
+  getUserDetail = () =>
+  {
+    const token = this.getToken();
+    if(!token) return null;
+    const decodedToken : any = jwtDecode(token);
+    const userDetail =
+    {
+      id : decodedToken.sub,
+      fullName : decodedToken.name,
+      email : decodedToken.email,
+      role : decodedToken.role || []
+    }
+
+    return userDetail;
   }
 }

@@ -24,7 +24,7 @@ export class LoginComponent implements OnInit {
   matSnackBar = inject(MatSnackBar);
   router = inject(Router)
 
-  hide = true; // Hide password and Show password
+  hide : boolean = true; // Hide password and Show password
   form! : FormGroup;
   fb = inject(FormBuilder);
 
