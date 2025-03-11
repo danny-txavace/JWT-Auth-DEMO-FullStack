@@ -11,41 +11,49 @@
         <div *ngIf="authService.getUserDetail() as userDetail">
           <div class="flex gap-5 items-center">
 
-            <a [matMenuTriggerFor]="menu" class="flex gap-2 cursor-pointer items-center">
-              <div class="bg-red-400 text-white font-bold shadow-md rounded-full w-10 h-10 p-5 flex justify-center items-center">
-                {{ userDetail!.fullName[0].toUpperCase() }}
-              </div>
-              <div class="text-white flex flex-col">
-                <h1 class="p-0 m-0 font-medium">
-                  {{ userDetail?.fullName }}
-                </h1>
-                <p class="p-0 m-0 font-medium text-xs">
-                  {{ userDetail?.role }}
-                </p>
-              </div>
-            </a>
+            <div>
+              <a [matMenuTriggerFor]="menu" class="flex gap-2 cursor-pointer items-center">
+                <div class="bg-red-400 text-white font-bold shadow-md rounded-full w-10 h-10 p-5 flex justify-center items-center">
+                  {{ userDetail!.fullName[0].toUpperCase() }}
+                </div>
+                <div class="text-white flex flex-col">
+                  <h1 class="p-0 m-0 font-medium">
+                    {{ userDetail?.fullName }}
+                  </h1>
+                  <p class="p-0 m-0 font-medium text-xs">
+                    {{ userDetail?.role }}
+                  </p>
+                </div>
+              </a>
 
-            <mat-menu #menu="matMenu">
-              <button [routerLink]="['/account', userDetail.id]" mat-menu-item>
-                <mat-icon>account_circle</mat-icon>
-                <span>
-                  View Profile
-                </span>
-              </button>
+              <mat-menu #menu="matMenu">
+                <button [routerLink]="['/account', userDetail.id]" mat-menu-item>
+                  <mat-icon>account_circle</mat-icon>
+                  <span>
+                    View Profile
+                  </span>
+                </button>
 
-              <button mat-menu-item
-                (click)="logout()">
-                <mat-icon>
-                  logout
-                </mat-icon>
-                <span>Logout</span>
-              </button>
-            </mat-menu>
+                <button mat-menu-item
+                  (click)="logout()">
+                  <mat-icon>
+                    logout
+                  </mat-icon>
+                  <span>Logout</span>
+                </button>
+              </mat-menu>
+            </div>
 
-            <a *ngIf="userDetail?.role.includes('Admin')" mat-button routerLink="/users">
-              <mat-icon>groups</mat-icon>
-              <span>Users</span>
-            </a>
+            <div>
+              <a *ngIf="userDetail?.role.includes('Admin')" mat-button routerLink="/users">
+                <mat-icon>groups</mat-icon>
+                <span>Users</span>
+              </a>
+              <a *ngIf="userDetail?.role.includes('Admin')" mat-button routerLink="/roles">
+                <mat-icon>settings</mat-icon>
+                <span>Roles</span>
+              </a>
+            </div>
           </div>
         </div>
       }
