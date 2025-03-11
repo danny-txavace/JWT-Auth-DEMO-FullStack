@@ -42,6 +42,7 @@ export class AuthService {
 
 
   // Usamos no auth Guard - 'Controlador de rotas'
+  // Também usamos na 'role Guard'
   isLoggedIn = () : boolean =>
   {
     const token = this.getToken();
@@ -98,6 +99,17 @@ export class AuthService {
   // V I E W   P R O F I L E do  'Navbar'
   getDetail = () : Observable<UserDetail>=>
     this.http.get<UserDetail>(`${this.serverUrl}Account/detail`);
-}
 
-// 2:53:32
+
+  // List All Users
+  getAll = () : Observable<UserDetail[]>=> this.http.get<UserDetail[]>(`${this.serverUrl}Account`);
+
+  getRoles = () : string[] | null => {
+    const token = this.getToken();
+    if(!token) return null;
+
+    const decodedToken : any = jwtDecode(token);
+    return decodedToken.role || null;
+  }
+
+}
