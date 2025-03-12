@@ -7,6 +7,8 @@ import { HttpClient } from '@angular/common/http';
 import { jwtDecode } from 'jwt-decode';
 import { RegisterRequest } from '../interfaces/register-request';
 import { UserDetail } from '../interfaces/user-detail';
+import { ResetPasswordRequest } from '../interfaces/reset-password-request';
+import { ChangePasswordRequest } from '../interfaces/change-password-request';
 
 @Injectable({
   providedIn: 'root'
@@ -115,4 +117,8 @@ export class AuthService {
 
   // FORGOT PASSWORD VIEW
   forgotPassword = (email : string) : Observable<AuthResponse> => this.http.post<AuthResponse>(`${this.serverUrl}Account/forgot-password`, {email});
+
+  resetPassword = (data : ResetPasswordRequest) : Observable<AuthResponse> => this.http.post<AuthResponse>(`${this.serverUrl}Account/reset-password`, data);
+
+  changePassword = (data : ChangePasswordRequest) : Observable<AuthResponse> => this.http.post<AuthResponse>(`${this.serverUrl}Account/change-password`, data);
 }

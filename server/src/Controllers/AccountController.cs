@@ -291,10 +291,13 @@ namespace server.src.Controllers
         public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
         {
             var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
+            //resetPasswordDto.Token = WebUtility.UrlDecode(resetPasswordDto.Token);
+
+            //Console.WriteLine($"Token recebido: {resetPasswordDto.Token}");
 
             if(user is null)
             {
-                return BadRequest(new AuthResponseDto
+                return Ok(new AuthResponseDto
                 {
                     IsSuccess = false,
                     Message = "User does not exist with this email!"
@@ -305,7 +308,7 @@ namespace server.src.Controllers
 
             if(result.Succeeded)
             {
-                return BadRequest(new AuthResponseDto
+                return Ok(new AuthResponseDto
                 {
                     IsSuccess = true,
                     Message = "Password reset Successfully!"
@@ -315,9 +318,44 @@ namespace server.src.Controllers
             return BadRequest(new AuthResponseDto
             {
                 IsSuccess = false,
-                Message = result.Errors.FirstOrDefault()!.Description
+               //Message = result.Errors.FirstOrDefault()!.Description
+                Message = string.Join(", ", result.Errors.Select(e => e.Description))
             });
-            // 3:51:49
+        }
+
+
+        // CHANGE PASSWORD
+        [HttpPost("change-password")]
+        public async Task<ActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
+        {
+            var user = await _userManager.FindByEmailAsync(changePasswordDto.Email);
+
+            if(user is null)
+            {
+                return BadRequest(new AuthResponseDto{
+                    IsSuccess = false,
+                    Message = "User does not exist this email."
+                });
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, changePasswordDto.CurrentPassword, changePasswordDto.NewPassword);
+
+            if(result.Succeeded)
+            {
+                return Ok(new AuthResponseDto {
+                    IsSuccess = true,
+                    Message = "Password changed successfully!"
+                });
+            }
+
+            return BadRequest(new AuthResponseDto
+            {
+                IsSuccess = false,
+               //Message = result.Errors.FirstOrDefault()!.Description
+                Message = string.Join(", ", result.Errors.Select(e => e.Description))
+            });
         }
     }
 }
+
+// 4:11:30
