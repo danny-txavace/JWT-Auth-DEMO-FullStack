@@ -7,6 +7,8 @@ import { authGuard } from './_guards/auth.guard';
 import { UsersComponent } from './_pages/users/users.component';
 import { roleGuard } from './_guards/role.guard';
 import { RoleComponent } from './_pages/role/role.component';
+import { ForgetPasswordComponent } from './_pages/forget-password/forget-password.component';
+import { ResetPasswordComponent } from './_pages/reset-password/reset-password.component';
 
 export const routes: Routes = [
   {
@@ -45,5 +47,13 @@ export const routes: Routes = [
     {
       roles : ['Admin']
     },
+  },
+  {
+    path : 'forget-password',
+    component: ForgetPasswordComponent
+  },
+  {
+    path : 'reset-password',
+    component: ResetPasswordComponent
   }
 ];

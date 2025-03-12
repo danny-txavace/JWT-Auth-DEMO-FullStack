@@ -282,5 +282,42 @@ namespace server.src.Controllers
                 });
             }
         }
+
+
+
+        // RESET PASSWORD
+        [AllowAnonymous]
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordDto.Email);
+
+            if(user is null)
+            {
+                return BadRequest(new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "User does not exist with this email!"
+                });
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, resetPasswordDto.Token, resetPasswordDto.NewPassword);
+
+            if(result.Succeeded)
+            {
+                return BadRequest(new AuthResponseDto
+                {
+                    IsSuccess = true,
+                    Message = "Password reset Successfully!"
+                });
+            }
+
+            return BadRequest(new AuthResponseDto
+            {
+                IsSuccess = false,
+                Message = result.Errors.FirstOrDefault()!.Description
+            });
+            // 3:51:49
+        }
     }
 }

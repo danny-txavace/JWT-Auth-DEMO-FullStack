@@ -112,4 +112,7 @@ export class AuthService {
     return decodedToken.role || null;
   }
 
+
+  // FORGOT PASSWORD VIEW
+  forgotPassword = (email : string) : Observable<AuthResponse> => this.http.post<AuthResponse>(`${this.serverUrl}Account/forgot-password`, {email});
 }
