@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "i8DKriBnnpM=",
+  "dgSpecHash": "wdObs/DMcgU=",
   "success": true,
   "projectFilePath": "/home/ramadan/Documents/Projects/JwtAuth/server/server.csproj",
   "expectedPackageFiles": [
@@ -49,6 +49,7 @@
     "/home/ramadan/.nuget/packages/microsoft.identitymodel.tokens/8.0.1/microsoft.identitymodel.tokens.8.0.1.nupkg.sha512",
     "/home/ramadan/.nuget/packages/microsoft.openapi/1.6.22/microsoft.openapi.1.6.22.nupkg.sha512",
     "/home/ramadan/.nuget/packages/mono.texttemplating/3.0.0/mono.texttemplating.3.0.0.nupkg.sha512",
+    "/home/ramadan/.nuget/packages/restsharp/112.1.0/restsharp.112.1.0.nupkg.sha512",
     "/home/ramadan/.nuget/packages/sqlitepclraw.bundle_e_sqlite3/2.1.10/sqlitepclraw.bundle_e_sqlite3.2.1.10.nupkg.sha512",
     "/home/ramadan/.nuget/packages/sqlitepclraw.core/2.1.10/sqlitepclraw.core.2.1.10.nupkg.sha512",
     "/home/ramadan/.nuget/packages/sqlitepclraw.lib.e_sqlite3/2.1.10/sqlitepclraw.lib.e_sqlite3.2.1.10.nupkg.sha512",

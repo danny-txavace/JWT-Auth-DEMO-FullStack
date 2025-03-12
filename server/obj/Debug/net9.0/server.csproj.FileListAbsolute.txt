@@ -158,3 +158,4 @@
 /home/ramadan/Documents/Projects/JwtAuth/server/obj/Debug/net9.0/server.pdb
 /home/ramadan/Documents/Projects/JwtAuth/server/obj/Debug/net9.0/server.genruntimeconfig.cache
 /home/ramadan/Documents/Projects/JwtAuth/server/obj/Debug/net9.0/ref/server.dll
+/home/ramadan/Documents/Projects/JwtAuth/server/bin/Debug/net9.0/RestSharp.dll

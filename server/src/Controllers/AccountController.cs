@@ -3,6 +3,7 @@
 */
 
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using RestSharp;
 using server.src.DTOs;
 using server.src.Models;
 
@@ -211,6 +213,74 @@ namespace server.src.Controllers
             }).ToListAsync();
 
             return Ok(users);
+        }
+
+
+        // FORGOT PASSWORD
+        [AllowAnonymous]
+        [HttpPost("forgot-password")]
+        public async Task<ActionResult> ForgotPassword(ForgotPasswordDto forgotPasswordDto)
+        {
+            var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
+
+            if(user is null)
+            {
+                return Ok(new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "User does not exist with this email"
+                });
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var resetLink = $"http://localhost:4200/reset-password?email={user.Email}&token={WebUtility.UrlEncode(token)}";
+
+            /* API
+            using RestSharp;
+
+            var client = new RestClient("https://send.api.mailtrap.io/api/send");
+            var request = new RestRequest();
+            request.AddHeader("Authorization", "Bearer ad03370cd96f96fad70fa68b235e5fc4");
+            request.AddHeader("Content-Type", "application/json");
+            request.AddParameter("application/json", "{\"from\":{\"email\":\"hello@demomailtrap.co\",\"name\":\"Mailtrap Test\"},\"to\":[{\"email\":\"ramadan.ismael02@gmail.com\"}],\"template_uuid\":\"3bb16179-f1d7-4288-9c92-260a6cb1c41d\",\"template_variables\":{\"user_email\":\"Test_User_email\",\"pass_reset_link\":\"Test_Pass_reset_link\"}}", ParameterType.RequestBody);
+            var response = client.Post(request);
+            System.Console.WriteLine(response.Content);
+            */
+
+            
+            // First Download 'RestSharp' in NUGET
+            var client = new RestClient("https://send.api.mailtrap.io/api/send");            
+            var request = new RestRequest
+            {
+                Method = Method.Post,
+                RequestFormat = DataFormat.Json
+            };
+
+            request.AddHeader("Authorization", "Bearer ad03370cd96f96fad70fa68b235e5fc4");
+            request.AddJsonBody(new {
+                from = new { email = "hello@demomailtrap.co" },
+                to = new[] { new { email = user.Email } },
+                template_uuid = "3bb16179-f1d7-4288-9c92-260a6cb1c41d",
+                template_variables = new { user_email = user.Email, pass_reset_link = resetLink }
+            });
+
+            var response = client.Execute(request);
+            
+            if(response.IsSuccessful)
+            {
+                return Ok(new AuthResponseDto {
+                    IsSuccess = true,
+                    Message = "Email sent with password reset link. Please check your email."
+                });
+            }
+            else
+            {
+                return BadRequest(new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = response.Content!.ToString()
+                });
+            }
         }
     }
 }
