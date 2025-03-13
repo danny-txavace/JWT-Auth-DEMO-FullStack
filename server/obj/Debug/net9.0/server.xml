@@ -16,6 +16,18 @@
         <member name="M:server.Migrations.CreatetbUserMigrations.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
+        <member name="T:server.Migrations.RefreshToken">
+            <inheritdoc />
+        </member>
+        <member name="M:server.Migrations.RefreshToken.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:server.Migrations.RefreshToken.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:server.Migrations.RefreshToken.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
         <member name="M:server.src.Configs.SwaggerConfig.UseSwaggerConfiguration(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
             <summary>
             DisplayRequestDuration() -> Mostra o tempo de resposta de cada requisição na UI do Swagger

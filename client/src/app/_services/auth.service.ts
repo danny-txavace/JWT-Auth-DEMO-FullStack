@@ -15,7 +15,10 @@ import { ChangePasswordRequest } from '../interfaces/change-password-request';
 })
 export class AuthService {
   serverUrl : string = environment.serverUrl;
-  private tokenKey = 'token';
+  //private tokenKey = 'token'; //NO REFRESH
+
+  //  REFRESH TOKEN
+  private userKey = 'user';
 
   constructor(private http: HttpClient)
   {}
@@ -30,7 +33,10 @@ export class AuthService {
       map((response) => {
         if(response.isSuccess)
         {
-          localStorage.setItem(this.tokenKey, response.token);
+          //localStorage.setItem(this.tokenKey, response.token); //NO REFRESH
+
+          //REFRESH TOKEN
+          localStorage.setItem(this.userKey, JSON.stringify(response));
         }
         return response;
       })
@@ -40,7 +46,23 @@ export class AuthService {
   // Usamos no interceptor
   // ng g interceptor interceptor/token
   // é buscado no 'token interceptor' e 'account component'
-  getToken = () : string | null => localStorage.getItem(this.tokenKey) || '';
+  //getToken = () : string | null => localStorage.getItem(this.tokenKey) || ''; //NO REFRESH
+
+  // REFRESH TOKEN
+  getToken = () : string | null => {
+    const user = localStorage.getItem(this.userKey);
+    if(!user) return null;
+    const userDetail : AuthResponse = JSON.parse(user);
+    return userDetail.token;
+  }
+
+  // REFRESH TOKEN LIKE LAST getToken
+  getRefreshToken = () : string | null => {
+    const user = localStorage.getItem(this.userKey);
+    if(!user) return null;
+    const userDetail : AuthResponse = JSON.parse(user);
+    return userDetail.refreshToken;
+  }
 
 
   // Usamos no auth Guard - 'Controlador de rotas'
@@ -50,7 +72,8 @@ export class AuthService {
     const token = this.getToken();
     if(!token) return false;
 
-    return !this.isTokenExpired();
+    //return !this.isTokenExpired(); NO REFRESH
+    return true;
   }
 
   private isTokenExpired()
@@ -62,14 +85,18 @@ export class AuthService {
     // Após instalar, confirme a versão no package.json
     const decoded = jwtDecode(token);
     const isTokenExpired = Date.now() >= decoded['exp']! * 1000;
-    if(isTokenExpired) this.logout();
-    return isTokenExpired;
+    //if(isTokenExpired) this.logout(); //NO REFRESH
+    //return isTokenExpired; //NO REFRESH
+    return true; // REFRESH TOKEN
   }
 
   // Usamos no 'Navbar'
   logout = () : void =>
   {
-    localStorage.removeItem(this.tokenKey);
+    //localStorage.removeItem(this.tokenKey); //NO REFRESH
+
+    // REFRESH TOKEN
+    localStorage.removeItem(this.userKey);
   }
 
   // Usamos no Profile like(photo, name and role) que está localizado no 'Navbar' canto superior direito da tela
@@ -121,4 +148,9 @@ export class AuthService {
   resetPassword = (data : ResetPasswordRequest) : Observable<AuthResponse> => this.http.post<AuthResponse>(`${this.serverUrl}Account/reset-password`, data);
 
   changePassword = (data : ChangePasswordRequest) : Observable<AuthResponse> => this.http.post<AuthResponse>(`${this.serverUrl}Account/change-password`, data);
+
+
+  // REFRESH TOKEN
+  refreshToken = (data : {email : string, token : string, refreshToken : string}) : Observable<AuthResponse> =>
+    this.http.post<AuthResponse>(`${this.serverUrl}Account/refresh-token`, data);
 }

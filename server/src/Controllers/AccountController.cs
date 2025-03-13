@@ -5,6 +5,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -107,13 +108,80 @@ namespace server.src.Controllers
             }
 
             var token = await GenerateToken(user);
+            
+            // Implement JWT Refresh Token
+            // START
+            // Create Method GenerateRefreshToken()
+            var refreshToken = GenerateRefreshToken();
+            _ = int.TryParse(_configuration.GetSection("JWTSettings").GetSection("RefreshTokenValidityIn").Value!, out int RefreshTokenValidityIn);
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(RefreshTokenValidityIn);
+            await _userManager.UpdateAsync(user);
+            // END
 
             return Ok(new AuthResponseDto
             {
                 Token = token,
                 IsSuccess = true,
-                Message = "Login successful!"
+                Message = "Login successful!",
+
+                // JWT Refresh Token
+                RefreshToken = refreshToken
             });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<AuthResponseDto>> RefreshToken(TokenDto tokenDto)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var principal = GetPrincipalFromExpiredToken(tokenDto.Token);
+            var user = await _userManager.FindByEmailAsync(tokenDto.Email);
+
+            if(principal is null || user is null || user.RefreshToken != tokenDto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow) return BadRequest(new AuthResponseDto {
+                IsSuccess = false,
+                Message = "Invalid client request"
+            });
+
+            var newJwtToken = await GenerateToken(user);
+            var newRefreshToken = GenerateRefreshToken();
+            _ = int.TryParse(_configuration.GetSection("JWTSettings").GetSection("RefreshTokenValidityIn").Value!, out int RefreshTokenValidityIn);
+            user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(RefreshTokenValidityIn);
+
+            await _userManager.UpdateAsync(user);
+
+            return Ok(new AuthResponseDto{
+                IsSuccess = true,
+                Token = newJwtToken,
+                RefreshToken = newRefreshToken,
+                Message = "Refreshed token successfully!"
+            });
+        }
+
+        private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
+        {
+            var signingKey = Environment.GetEnvironmentVariable("JWT_SIGNING_KEY") ?? throw new InvalidOperationException("JWT_SINGNING_KEY is not set");
+
+            var tokenParameters = new TokenValidationParameters
+            {
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
+                ValidateLifetime = false
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(token, tokenParameters, out SecurityToken securityToken);
+
+            if(securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase)) throw new SecurityTokenException("Invalid token");
+
+            return principal;
         }
 
         private async Task<string> GenerateToken(UserModel userModel)
@@ -151,7 +219,7 @@ namespace server.src.Controllers
             {                
                 Subject = new ClaimsIdentity(claims),
                 NotBefore = DateTime.UtcNow,
-                Expires = DateTime.UtcNow.AddHours(1),
+                Expires = DateTime.UtcNow.AddMinutes(1),
                 SigningCredentials = credentials,
                 Issuer = issuer,
                 Audience = audience
@@ -160,6 +228,15 @@ namespace server.src.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+
+            return Convert.ToBase64String(randomNumber);
         }
 
 
@@ -357,5 +434,3 @@ namespace server.src.Controllers
         }
     }
 }
-
-// 4:11:30
